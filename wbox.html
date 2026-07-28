@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Wbox 文件列表</title>
+</head>
+<body>
+
+    <h2>📂 wbox/src 目录文件列表</h2>
+    <hr>
+    <div id="fileList">⏳ 加载中...</div>
+    <hr>
+    <button onclick="loadFiles()">🔄 刷新</button>
+
+    <script>
+        const OWNER = 'zkwei123';
+        const REPO = 'zkwei123.github.io';
+        const PATH = 'wbox/src';
+
+        async function loadFiles() {
+            const container = document.getElementById('fileList');
+            container.innerHTML = '⏳ 加载中...';
+
+            try {
+                const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`;
+                const res = await fetch(url);
+                
+                if (!res.ok) {
+                    container.innerHTML = `❌ 加载失败 (HTTP ${res.status})`;
+                    return;
+                }
+
+                const data = await res.json();
+                
+                if (!data || data.length === 0) {
+                    container.innerHTML = '📭 目录为空';
+                    return;
+                }
+
+                let html = `<p><strong>共 ${data.length} 个文件</strong>（点击文件名下载）</p><ul>`;
+                data.forEach(item => {
+                    // 只显示文件，跳过目录
+                    if (item.type === 'dir') {
+                        html += `<li>📁 ${item.name}/ (目录)</li>`;
+                        return;
+                    }
+                    
+                    const sizeKB = (item.size / 1024).toFixed(1);
+                    // 点击下载：直接用 download_url
+                    html += `<li>📄 <a href="${item.download_url}" download="${item.name}">${item.name}</a> (${sizeKB} KB)</li>`;
+                });
+                html += '</ul>';
+                container.innerHTML = html;
+
+            } catch (err) {
+                container.innerHTML = `❌ 错误: ${err.message}`;
+            }
+        }
+
+        window.onload = loadFiles;
+    </script>
+
+</body>
+</html>
