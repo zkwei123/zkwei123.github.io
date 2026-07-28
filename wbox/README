@@ -1,0 +1,8 @@
+Welcome to use wBox!!
+It is a lightweight Micropython game application for ESP32
+
+It supports simple game gameplay with only an SSD1306 OLED screen and a physical button connected to ESP32.
+ 
+Easy wiring, zero complex configuration, plug and play for mini embedded game experience.
+
+Download from the "src" Directory.Thank you for Downloading and using wBox.
