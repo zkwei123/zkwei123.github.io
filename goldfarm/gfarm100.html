@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>骷髅打金体验服</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body {
+            background: #0b0e14;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            padding: 12px;
+            touch-action: none;
+        }
+        .game-container {
+            max-width: 860px;
+            width: 100%;
+            background: #1a1f2b;
+            border-radius: 48px 48px 32px 32px;
+            padding: 20px 16px 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 0 2px #5f4c3b inset;
+            border-bottom: 6px solid #b78a5f;
+            position: relative;
+        }
+        .skeleton-stage {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            background: #232a36;
+            border-radius: 120px 120px 40px 40px;
+            padding: 20px 10px 16px;
+            margin-bottom: 16px;
+            box-shadow: inset 0 -8px 0 #3f3327, 0 8px 0 #0f0a07;
+            background-image: radial-gradient(circle at 20% 30%, #3d4a5a 1px, transparent 1px),
+                              radial-gradient(circle at 80% 70%, #3d4a5a 1px, transparent 1px);
+            background-size: 40px 40px;
+            transition: all 0.3s;
+        }
+        .skeleton {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+            filter: drop-shadow(0 8px 4px rgba(0,0,0,0.6));
+            animation: dance 1.6s infinite alternate ease-in-out;
+            transform-origin: bottom;
+            cursor: pointer;
+        }
+        .skeleton:nth-child(2) { animation-delay: 0.2s; }
+        .skeleton:nth-child(3) { animation-delay: 0.5s; }
+        @keyframes dance {
+            0% { transform: translateY(0px) rotate(-5deg) scale(1); }
+            25% { transform: translateY(-12px) rotate(8deg) scale(1.02); }
+            50% { transform: translateY(4px) rotate(-8deg) scale(0.98); }
+            75% { transform: translateY(-18px) rotate(12deg) scale(1.04); }
+            100% { transform: translateY(0px) rotate(-2deg) scale(1); }
+        }
+        .skull-svg { width: 70px; height: 90px; display: block; }
+        .hat { font-size: 32px; line-height: 1; margin-bottom: -8px; z-index: 5; position: relative; filter: drop-shadow(0 4px 2px #00000088); transform: rotate(2deg); }
+        .skeleton:nth-child(2) .hat { transform: rotate(-6deg) scaleX(-1); }
+        .skeleton:nth-child(3) .hat { transform: rotate(10deg) scale(1.1); }
+
+        .ad-banner {
+            background: #f7e05e;
+            background-image: linear-gradient(135deg, #f9d423, #ff4e50);
+            padding: 14px 10px;
+            border-radius: 120px;
+            font-weight: 900;
+            font-size: 1.3rem;
+            text-align: center;
+            letter-spacing: 2px;
+            color: #1a0f0a;
+            text-shadow: 0 2px 0 #ffffffaa;
+            box-shadow: 0 6px 0 #7f3f2a, 0 10px 20px #00000066;
+            margin: 12px 0 16px;
+            border: 2px solid #ffc857;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.08s linear;
+        }
+        .ad-banner:active { transform: scale(0.96); box-shadow: 0 2px 0 #7f3f2a; }
+        .ad-banner span { background: #00000030; padding: 0 12px; border-radius: 40px; }
+
+        .btn-start {
+            background: #4c6b3a;
+            border: none;
+            border-bottom: 6px solid #2d4520;
+            padding: 14px 30px;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 1.4rem;
+            color: #f0ffe0;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #0a080e;
+            transition: 0.05s linear;
+            width: 100%;
+            letter-spacing: 2px;
+        }
+        .btn-start:active { transform: translateY(5px); border-bottom-width: 1px; }
+
+        .game-play-area {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .game-play-area.active { display: flex; }
+        .start-area { display: block; }
+        .start-area.hidden { display: none; }
+
+        .map-container {
+            position: relative;
+            background: #2a2f3a;
+            border-radius: 30px;
+            padding: 10px;
+            box-shadow: inset 0 0 0 3px #3f4a5a, 0 6px 0 #0f0a07;
+            background-image: linear-gradient(rgba(60, 70, 90, 0.3) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(60, 70, 90, 0.3) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            aspect-ratio: 16 / 10;
+            background: #1e222d;
+            border-radius: 20px;
+            touch-action: none;
+            cursor: crosshair;
+            image-rendering: pixelated;
+            box-shadow: inset 0 0 30px #00000066;
+        }
+        .control-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: space-between;
+            align-items: center;
+            margin: 6px 0;
+        }
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-pixel {
+            background: #3d3a4a;
+            border: none;
+            border-bottom: 5px solid #201e2a;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-weight: bold;
+            color: #f5e6d3;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.05s linear;
+            box-shadow: 0 4px 0 #0a080e;
+            font-family: inherit;
+        }
+        .btn-pixel:active { transform: translateY(4px); border-bottom-width: 1px; }
+        .btn-pixel.primary { background: #4c6b3a; border-bottom-color: #2d4520; color: #f0ffe0; }
+        .btn-pixel.gold { background: #b8863a; border-bottom-color: #7a5a1f; color: #fff5d0; }
+        .btn-pixel.danger { background: #7a4a3a; border-bottom-color: #4f2d1f; }
+        .btn-pixel:disabled { opacity: 0.4; transform: translateY(4px); border-bottom-width: 2px; pointer-events: none; }
+
+        .joystick-grid {
+            display: grid;
+            grid-template-columns: 50px 50px 50px;
+            grid-template-rows: 50px 50px 50px;
+            gap: 3px;
+        }
+        .joystick-btn {
+            width: 100%; height: 100%;
+            border-radius: 12px;
+            background: #2f2a3a;
+            border: 3px solid #5f4a5a;
+            color: #d0c0d0;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #14101a;
+            transition: 0.04s;
+        }
+        .joystick-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #14101a; }
+        .joystick-btn.center-btn { background: #4a3a4a; border-color: #7a5a7a; font-size: 0.9rem; }
+
+        .stats-bar {
+            background: #1f1b16;
+            border: 3px solid #5b4a36;
+            border-radius: 30px;
+            padding: 8px 14px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 4px;
+            font-size: 0.7rem;
+            color: #d4c09a;
+        }
+        .stats-bar span { color: #f7e484; }
+
+        .log-box {
+            background: #14110e;
+            border: 3px solid #4d3e2e;
+            border-radius: 20px;
+            padding: 8px 12px;
+            min-height: 48px;
+            color: #c9b694;
+            font-size: 0.7rem;
+            line-height: 1.5;
+            max-height: 60px;
+            overflow-y: auto;
+            box-shadow: inset 0 0 20px #00000088;
+        }
+        .log-box .fail { color: #f56a4a; }
+        .log-box .good { color: #8fdf7a; }
+
+        .resurrect-bar {
+            display: none;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 4px 0;
+        }
+        .resurrect-bar.show { display: flex; }
+
+        .shop-area {
+            background: #1f1b16;
+            border: 2px solid #5b4a36;
+            border-radius: 30px;
+            padding: 8px 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+            margin: 4px 0;
+        }
+        .shop-area .btn-pixel { font-size: 0.8rem; padding: 6px 14px; }
+
+        .fraud-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #0b1a2b;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 999;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            backdrop-filter: blur(6px);
+            background: radial-gradient(circle at center, #142433, #03070e);
+        }
+        .fraud-overlay.show { display: flex; }
+        .fraud-box {
+            background: #1c2a3f;
+            padding: 30px 28px;
+            border-radius: 60px;
+            border: 2px solid #b8945c;
+            max-width: 480px;
+            box-shadow: 0 30px 40px #000000cc;
+        }
+        .fraud-box h2 { color: #ffc857; font-size: 1.8rem; }
+        .fraud-box p { font-size: 1rem; line-height: 1.6; color: #cfddee; }
+        .fraud-box .big-icon { font-size: 3.6rem; }
+        .fraud-timer { margin-top: 16px; color: #ffb07c; font-weight: bold; font-size: 1.8rem; }
+        .credit { margin-top: 20px; color: #6f7d94; font-size: 0.8rem; border-top: 1px solid #3f4d62; padding-top: 12px; }
+
+        @media (max-width: 600px) {
+            .skeleton { width: 60px; }
+            .skull-svg { width: 50px; height: 70px; }
+            .hat { font-size: 24px; }
+            .ad-banner { font-size: 1rem; }
+            .joystick-grid { grid-template-columns: 44px 44px 44px; grid-template-rows: 44px 44px 44px; }
+            .btn-pixel { font-size: 0.7rem; padding: 6px 12px; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container" id="appContainer">
+    <div class="start-area" id="startArea">
+        <div class="skeleton-stage">
+            <div class="skeleton"><div class="hat">🎩</div><svg class="skull-svg" viewBox="0 0 100 120"><circle cx="50" cy="40" r="32" fill="#e8e0d5" stroke="#3a2c1e" stroke-width="3"/><circle cx="38" cy="34" r="6" fill="#1f1a16"/><circle cx="62" cy="34" r="6" fill="#1f1a16"/><path d="M40 56 Q50 70, 60 56" stroke="#3a2c1e" stroke-width="4" fill="none"/><rect x="42" y="70" width="16" height="20" rx="6" fill="#e8e0d5" stroke="#3a2c1e" stroke-width="3"/><rect x="36" y="86" width="8" height="26" rx="4" fill="#e8e0d5" stroke="#3a2c1e" stroke-width="3"/><rect x="56" y="86" width="8" height="26" rx="4" fill="#e8e0d5" stroke="#3a2c1e" stroke-width="3"/><line x1="42" y1="100" x2="48" y2="112" stroke="#3a2c1e" stroke-width="3"/><line x1="58" y1="100" x2="52" y2="112" stroke="#3a2c1e" stroke-width="3"/></svg></div>
+            <div class="skeleton"><div class="hat">🧢</div><svg class="skull-svg" viewBox="0 0 100 120"><circle cx="50" cy="40" r="32" fill="#e8e0d5" stroke="#3a2c1e" stroke-width="3"/><circle cx="38" cy="34" r="6" fill="#1f1a16"/><circle cx="62" cy="34" r="6" fill="#1f1a16"/><path d="M40 56 Q50 70, 60 56" stroke="#3a2c1e" stroke-width="4" fill="none"/><rect x="42" y="70" width="16" height="20" rx="6" fill="#e8e0d5" stroke="#3a2c1e" stroke-width="3"/><rect x="36" y="86" width="8" height="26" rx="4" fill="#e8e0d5" stroke="#3a2c1e" stroke-width="3"/><rect x="56" y="86" width="8" height="26" rx="4" fill="#e8e0d5" stroke="#3a2c1e" stroke-width="3"/><line x1="42" y1="100" x2="48" y2="112" stroke="#3a2c1e" stroke-width="3"/><line x1="58" y1="100" x2="52" y2="112" stroke="#3a2c1e" stroke-width="3"/></svg></div>
+            <div class="skeleton"><div class="hat">👒</div><svg class="skull-svg" viewBox="0 0 100 120"><circle cx="50" cy="40" r="32" fill="#e8e0d5" stroke="#3a2c1e" stroke-width="3"/><circle cx="38" cy="34" r="6" fill="#1f1a16"/><circle cx="62" cy="34" r="6" fill="#1f1a16"/><path d="M40 56 Q50 70, 60 56" stroke="#3a2c1e" stroke-width="4" fill="none"/><rect x="42" y="70" width="16" height="20" rx="6" fill="#e8e0d5" stroke="#3a2c1e" stroke-width="3"/><rect x="36" y="86" width="8" height="26" rx="4" fill="#e8e0d5" stroke="#3a2c1e" stroke-width="3"/><rect x="56" y="86" width="8" height="26" rx="4" fill="#e8e0d5" stroke="#3a2c1e" stroke-width="3"/><line x1="42" y1="100" x2="48" y2="112" stroke="#3a2c1e" stroke-width="3"/><line x1="58" y1="100" x2="52" y2="112" stroke="#3a2c1e" stroke-width="3"/></svg></div>
+        </div>
+        <div class="ad-banner" id="adBanner"><span>⚡ 点击进入 · 超级2D打金 ⚡</span><div style="font-size:0.8rem; opacity:0.8;">开局送神装 · 爆率999%</div></div>
+        <button class="btn-start" id="btnStart">⚔️ 开始打金 ⚔️</button>
+        <div style="text-align:right; font-size:0.6rem; color:#6b6f7e; margin-top:8px;">idea by zkwei123 · 骷髅打井体验服1.02 · 本网页使用的是Apache-2.0</div>
+    </div>
+
+    <div class="game-play-area" id="gamePlayArea">
+        <div class="map-container">
+            <canvas id="gameCanvas" width="800" height="500"></canvas>
+        </div>
+        <div class="control-panel">
+            <div class="btn-group">
+                <button class="btn-pixel primary" id="attackBtn">⚔️ 攻击 (C)</button>
+            </div>
+            <div class="joystick-grid" id="joystickGrid">
+                <button class="joystick-btn" data-dir="up">↑</button>
+                <button class="joystick-btn" data-dir="up">↑</button>
+                <button class="joystick-btn" data-dir="up">↑</button>
+                <button class="joystick-btn" data-dir="left">←</button>
+                <button class="joystick-btn center-btn" data-dir="center">⚔</button>
+                <button class="joystick-btn" data-dir="right">→</button>
+                <button class="joystick-btn" data-dir="down">↓</button>
+                <button class="joystick-btn" data-dir="down">↓</button>
+                <button class="joystick-btn" data-dir="down">↓</button>
+            </div>
+        </div>
+
+        <div class="stats-bar">
+            <div>❤️ HP <span id="hpDisplay">100</span></div>
+            <div>⚔️ 攻击 <span id="atkDisplay">20</span></div>
+            <div>🛡️ 防御 <span id="defDisplay">15</span></div>
+            <div>💰 金币 <span id="goldDisplay">0</span></div>
+            <div>🎯 击杀 <span id="killDisplay">0</span></div>
+            <div>👹 Boss <span id="bossHpDisplay">--</span></div>
+        </div>
+
+        <div class="shop-area">
+            <span style="color:#d4c09a; font-size:0.8rem;">🏪 商店</span>
+            <button class="btn-pixel gold" id="upgradeAtkBtn">⚔️ 攻击 +5 (50💰)</button>
+            <button class="btn-pixel gold" id="upgradeDefBtn">🛡️ 防御 +3 (40💰)</button>
+        </div>
+
+        <div class="log-box" id="logBox">💀 点击攻击砍骷髅！ WASD移动，C攻击。</div>
+        <div class="resurrect-bar" id="resurrectBar">
+            <button class="btn-pixel primary" id="reviveBtn">💀 复活</button>
+            <button class="btn-pixel danger" id="okBtn">确定</button>
+        </div>
+    </div>
+</div>
+
+<div class="fraud-overlay" id="fraudOverlay">
+    <div class="fraud-box">
+        <div class="big-icon">🛡️🚨</div>
+        <h2>国家反诈中心 提醒您</h2>
+        <p>⚠️ 警惕"打金"骗局！<br>高爆率、稳赚不赔都是诈骗！<br>请下载国家反诈中心APP。</p>
+        <div class="fraud-timer" id="fraudTimer">12</div>
+        <div style="margin-top:8px; color:#aab9d0;">即将跳转...</div>
+        <div class="credit">🎭 哈哈哈，这只是一个玩笑 · idea by zkwei123</div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---- DOM ----
+        const startArea = document.getElementById('startArea');
+        const gamePlayArea = document.getElementById('gamePlayArea');
+        const btnStart = document.getElementById('btnStart');
+        const adBanner = document.getElementById('adBanner');
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const logBox = document.getElementById('logBox');
+        const hpDisplay = document.getElementById('hpDisplay');
+        const atkDisplay = document.getElementById('atkDisplay');
+        const defDisplay = document.getElementById('defDisplay');
+        const goldDisplay = document.getElementById('goldDisplay');
+        const killDisplay = document.getElementById('killDisplay');
+        const bossHpDisplay = document.getElementById('bossHpDisplay');
+        const attackBtn = document.getElementById('attackBtn');
+        const upgradeAtkBtn = document.getElementById('upgradeAtkBtn');
+        const upgradeDefBtn = document.getElementById('upgradeDefBtn');
+        const reviveBtn = document.getElementById('reviveBtn');
+        const okBtn = document.getElementById('okBtn');
+        const resurrectBar = document.getElementById('resurrectBar');
+        const fraudOverlay = document.getElementById('fraudOverlay');
+        const fraudTimer = document.getElementById('fraudTimer');
+
+        // ---- 游戏状态 ----
+        const state = {
+            player: { x: 400, y: 250, radius: 14, hp: 100, maxHp: 100, atk: 20, def: 15, speed: 2.5 },
+            gold: 0,
+            kills: 0,
+            gameOver: false,
+            isFraud: false,
+            monsters: [],
+            boss: null,
+            bossCooldown: 0,
+            bossRage: false,
+            bossFlashTimer: 0,
+            maxMonsters: 50,
+            dir: { x: 0, y: 0 },
+            attackCooldown: 0,
+            effects: [],
+            floatingTexts: [],
+            loopRunning: false
+        };
+
+        // ---- 怪物配置 ----
+        function getMonsterTypes() {
+            const base = [
+                { name: '骷髅兵', color: '#c0b8a8', radius: 14, hp: 25, atk: 8, speed: 0.8, gold: 10 },
+                { name: '骷髅战士', color: '#b0a090', radius: 16, hp: 40, atk: 13, speed: 0.7, gold: 18 },
+                { name: '骷髅法师', color: '#9080b0', radius: 15, hp: 35, atk: 18, speed: 0.6, gold: 25 },
+            ];
+            const k = state.kills;
+            const scale = 1 + Math.floor(k / 8) * 0.5;
+            return base.map(m => ({
+                ...m,
+                hp: Math.floor(m.hp * scale),
+                atk: Math.floor(m.atk * scale),
+                gold: Math.floor(m.gold * scale),
+                speed: Math.min(m.speed + 0.05 * Math.floor(k/10), 1.8),
+            }));
+        }
+
+        const failMessages = [
+            "💥 网页太NB了，浏览器处理不了！",
+            "🤯 显卡拒绝渲染神装特效！",
+            "🔥 服务器被骷髅舞蹈烧穿！",
+            "🌀 检测到作弊：太欧了，强制失败！",
+            "📉 金价崩盘，装备瞬间贬值！",
+            "也没啥，就是想看你抓狂的样子",
+            "🕳️ 骷髅把金币黑洞吃了！",
+            "🧙 法师骷髅施法：移除所有装备！",
+            "🥴 您太强了，游戏没意思就自杀了。",
+            "📛 防沉迷：强制下线。",
+            "作者(zkwei123)太帅了，代码去追求了",
+            "卡到了后室，被实体吃了",
+            "一百年终于有人访问zkwei123.github.io了，服务器激动地崩溃了",
+            "💀 三只骷髅罢工，要求涨薪！",
+            "🎭 这就是个玩笑 (来自zkwei123)"
+        ];
+
+        // ---- 工具 ----
+        function log(msg, cls='') {
+            const d = document.createElement('div');
+            d.innerHTML = msg;
+            if (cls) d.className = cls;
+            logBox.appendChild(d);
+            if (logBox.children.length > 6) logBox.removeChild(logBox.children[0]);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+        function updateUI() {
+            hpDisplay.textContent = Math.max(0, Math.floor(state.player.hp));
+            atkDisplay.textContent = state.player.atk;
+            defDisplay.textContent = state.player.def;
+            goldDisplay.textContent = state.gold;
+            killDisplay.textContent = state.kills;
+            bossHpDisplay.textContent = state.boss ? Math.max(0, Math.floor(state.boss.hp)) : '--';
+        }
+        function dist(a,b) { return Math.hypot(a.x-b.x, a.y-b.y); }
+
+        // ---- 特效 ----
+        function addEffect(x, y, type) {
+            state.effects.push({ x, y, type, timer: 20, maxTimer: 20 });
+        }
+        function addFloatingText(x, y, text, color='#ffd78a') {
+            state.floatingTexts.push({ x, y, text, color, life: 40 });
+        }
+
+        // ---- 生成怪物 ----
+        function spawnMonster() {
+            if (state.gameOver || state.isFraud) return;
+            if (state.monsters.length >= state.maxMonsters) return;
+            const types = getMonsterTypes();
+            const type = types[Math.floor(Math.random() * types.length)];
+            let x, y, attempts=0;
+            do {
+                x = 40 + Math.random() * (canvas.width - 80);
+                y = 40 + Math.random() * (canvas.height - 80);
+                attempts++;
+            } while (attempts < 30 && dist({x,y}, state.player) < 100);
+            state.monsters.push({
+                ...type,
+                x, y,
+                hp: type.hp,
+                maxHp: type.hp,
+                hitCooldown: 0,
+            });
+        }
+
+        function spawnBoss() {
+            if (state.boss || state.gameOver || state.isFraud) return;
+            if (state.bossCooldown > 0) return;
+            const k = state.kills;
+            const hp = 130 + Math.floor(k / 5) * 30;
+            const atk = 22 + Math.floor(k / 8) * 6;
+            state.boss = {
+                name: '👑 骷髅王',
+                color: '#d4a050',
+                radius: 34,
+                x: canvas.width/2 + 80,
+                y: canvas.height/2 - 40,
+                hp: hp,
+                maxHp: hp,
+                atk: atk,
+                speed: 0.7 + Math.min(k/50, 0.6),
+                gold: 100 + Math.floor(k/3)*8,
+                hitCooldown: 0,
+            };
+            state.bossRage = false;
+            state.bossFlashTimer = 0;
+            log('👑 Boss 骷髅王降临！', 'good');
+            addEffect(state.boss.x, state.boss.y, 'boss_spawn');
+        }
+
+        // ---- 重置游戏 ----
+        function resetGame() {
+            state.player.hp = 100;
+            state.player.atk = 20;
+            state.player.def = 15;
+            state.player.x = 400;
+            state.player.y = 250;
+            state.gold = 0;
+            state.kills = 0;
+            state.monsters = [];
+            state.boss = null;
+            state.bossCooldown = 0;
+            state.bossRage = false;
+            state.bossFlashTimer = 0;
+            state.gameOver = false;
+            state.isFraud = false;
+            state.dir = {x:0, y:0};
+            state.attackCooldown = 0;
+            state.effects = [];
+            state.floatingTexts = [];
+            resurrectBar.classList.remove('show');
+            attackBtn.disabled = false;
+            upgradeAtkBtn.disabled = false;
+            upgradeDefBtn.disabled = false;
+            for (let i = 0; i < 4; i++) spawnMonster();
+            updateUI();
+            log('🔄 游戏重置！ 击败骷髅赚金币！', 'good');
+        }
+
+        function triggerLose() {
+            if (state.gameOver) return;
+            state.gameOver = true;
+            const msg = failMessages[Math.floor(Math.random() * failMessages.length)];
+            log(`💀 打金失败！ ${msg}`, 'fail');
+            resurrectBar.classList.add('show');
+            attackBtn.disabled = true;
+            upgradeAtkBtn.disabled = true;
+            upgradeDefBtn.disabled = true;
+        }
+
+        // ---- 攻击 ----
+        function playerAttack() {
+            if (state.gameOver || state.isFraud || state.attackCooldown > 0) return;
+            state.attackCooldown = 16;
+            const px = state.player.x, py = state.player.y;
+            const range = 65;
+            let hit = false;
+            // 攻击怪物
+            for (let i=state.monsters.length-1; i>=0; i--) {
+                const m = state.monsters[i];
+                if (dist({x:px,y:py}, m) < range + m.radius) {
+                    const dmg = Math.max(1, state.player.atk - Math.floor(m.atk * 0.2));
+                    m.hp -= dmg;
+                    m.hitCooldown = 10;
+                    hit = true;
+                    addEffect(m.x, m.y, 'hit');
+                    addFloatingText(m.x, m.y-10, `-${dmg}`, '#ff6644');
+                    if (m.hp <= 0) {
+                        state.gold += m.gold;
+                        state.kills++;
+                        addEffect(m.x, m.y, 'kill');
+                        addFloatingText(m.x, m.y-20, `+${m.gold}💰`, '#ffd700');
+                        log(`💀 击杀 ${m.name}！ +${m.gold} 金币`, 'good');
+                        state.monsters.splice(i, 1);
+                        if (Math.random() < 0.5) spawnMonster();
+                        if (state.kills % 4 === 0 && !state.boss && state.bossCooldown === 0) spawnBoss();
+                    }
+                }
+            }
+            // Boss
+            if (state.boss && dist({x:px,y:py}, state.boss) < range + state.boss.radius) {
+                const dmg = Math.max(1, state.player.atk - Math.floor(state.boss.atk * 0.15));
+                state.boss.hp -= dmg;
+                state.boss.hitCooldown = 10;
+                hit = true;
+                addEffect(state.boss.x, state.boss.y, 'boss_hit');
+                addFloatingText(state.boss.x, state.boss.y-20, `-${dmg}`, '#ff8844');
+                if (state.boss.hp <= 0) {
+                    state.gold += state.boss.gold;
+                    state.kills += 3;
+                    addEffect(state.boss.x, state.boss.y, 'boss_kill');
+                    addFloatingText(state.boss.x, state.boss.y-40, `💀 击败骷髅王！ +${state.boss.gold}💰`, '#ffaa00');
+                    log(`👑 击败骷髅王！ +${state.boss.gold} 金币！`, 'good');
+                    state.boss = null;
+                    state.bossRage = false;
+                    state.bossFlashTimer = 0;
+                    state.bossCooldown = 1200 + Math.floor(Math.random() * 960);
+                    log(`⏳ 骷髅王将在 ${Math.ceil(state.bossCooldown/60)} 秒后复活...`, 'good');
+                    for (let i = 0; i < 5; i++) spawnMonster();
+                }
+            }
+            if (!hit) { log('💨 攻击落空！', ''); }
+            updateUI();
+        }
+
+        // ---- 升级 ----
+        function upgradeAtk() {
+            if (state.gameOver || state.isFraud) return;
+            const cost = 50;
+            if (state.gold < cost) { log(`❌ 金币不足！ 需要 ${cost}`, 'fail'); return; }
+            state.gold -= cost;
+            state.player.atk += 5 + Math.floor(Math.random() * 3);
+            addEffect(state.player.x, state.player.y, 'upgrade');
+            addFloatingText(state.player.x, state.player.y-30, `⚔️ +${state.player.atk}`, '#8fdf7a');
+            log(`⬆️ 攻击提升至 ${state.player.atk}`, 'good');
+            updateUI();
+        }
+        function upgradeDef() {
+            if (state.gameOver || state.isFraud) return;
+            const cost = 40;
+            if (state.gold < cost) { log(`❌ 金币不足！ 需要 ${cost}`, 'fail'); return; }
+            state.gold -= cost;
+            state.player.def += 3 + Math.floor(Math.random() * 2);
+            addEffect(state.player.x, state.player.y, 'upgrade');
+            addFloatingText(state.player.x, state.player.y-30, `🛡️ +${state.player.def}`, '#6ab0e6');
+            log(`⬆️ 防御提升至 ${state.player.def}`, 'good');
+            updateUI();
+        }
+
+        // ---- 移动 ----
+        function movePlayer(dx, dy) {
+            if (state.gameOver || state.isFraud) return;
+            const p = state.player;
+            let nx = p.x + dx * p.speed;
+            let ny = p.y + dy * p.speed;
+            nx = Math.max(p.radius+4, Math.min(canvas.width-p.radius-4, nx));
+            ny = Math.max(p.radius+4, Math.min(canvas.height-p.radius-4, ny));
+            p.x = nx; p.y = ny;
+            const all = [...state.monsters];
+            if (state.boss) all.push(state.boss);
+            for (const m of all) {
+                const d = dist(p, m);
+                const minD = p.radius + m.radius;
+                if (d < minD && d > 0) {
+                    const angle = Math.atan2(p.y-m.y, p.x-m.x);
+                    const overlap = (minD - d) * 0.5;
+                    p.x += Math.cos(angle) * overlap;
+                    p.y += Math.sin(angle) * overlap;
+                    p.x = Math.max(p.radius+4, Math.min(canvas.width-p.radius-4, p.x));
+                    p.y = Math.max(p.radius+4, Math.min(canvas.height-p.radius-4, p.y));
+                }
+            }
+        }
+
+        // ---- 更新怪物 ----
+        function updateMonsters() {
+            const p = state.player;
+            for (const m of state.monsters) {
+                const d = dist(p, m);
+                if (d > 25 && d < 320) {
+                    const angle = Math.atan2(p.y-m.y, p.x-m.x);
+                    m.x += Math.cos(angle) * m.speed;
+                    m.y += Math.sin(angle) * m.speed;
+                }
+                m.x = Math.max(m.radius+2, Math.min(canvas.width-m.radius-2, m.x));
+                m.y = Math.max(m.radius+2, Math.min(canvas.height-m.radius-2, m.y));
+                if (d < p.radius + m.radius + 4 && m.hitCooldown <= 0) {
+                    const dmg = Math.max(1, Math.floor(m.atk * 0.4 - state.player.def * 0.15));
+                    p.hp -= dmg;
+                    m.hitCooldown = 30;
+                    addEffect(p.x, p.y, 'player_hit');
+                    addFloatingText(p.x, p.y-20, `-${dmg}`, '#ff4444');
+                    log(`💢 ${m.name} 攻击你！ -${dmg} HP`, 'fail');
+                    if (p.hp <= 0) { p.hp = 0; triggerLose(); }
+                    updateUI();
+                }
+                if (m.hitCooldown > 0) m.hitCooldown--;
+            }
+            if (state.boss) {
+                const b = state.boss;
+                const d = dist(p, b);
+                const hpPct = b.hp / b.maxHp;
+                if (hpPct < 0.3 && !state.bossRage) {
+                    state.bossRage = true;
+                    log('🔥 骷髅王进入愤怒状态！速度提升！', 'fail');
+                }
+                const currentSpeed = state.bossRage ? b.speed * 1.6 : b.speed;
+                if (d > 40 && d < 380) {
+                    const angle = Math.atan2(p.y-b.y, p.x-b.x);
+                    b.x += Math.cos(angle) * currentSpeed;
+                    b.y += Math.sin(angle) * currentSpeed;
+                }
+                b.x = Math.max(b.radius+2, Math.min(canvas.width-b.radius-2, b.x));
+                b.y = Math.max(b.radius+2, Math.min(canvas.height-b.radius-2, b.y));
+                if (d < p.radius + b.radius + 6 && b.hitCooldown <= 0) {
+                    const dmg = Math.max(1, Math.floor(b.atk * 0.5 - state.player.def * 0.12));
+                    const finalDmg = state.bossRage ? Math.floor(dmg * 1.2) : dmg;
+                    p.hp -= finalDmg;
+                    b.hitCooldown = 25;
+                    addEffect(p.x, p.y, 'player_hit');
+                    addFloatingText(p.x, p.y-20, `-${finalDmg}`, '#ff4444');
+                    log(`👑 骷髅王攻击！ -${finalDmg} HP`, 'fail');
+                    if (p.hp <= 0) { p.hp = 0; triggerLose(); }
+                    updateUI();
+                }
+                if (b.hitCooldown > 0) b.hitCooldown--;
+                if (state.bossRage) {
+                    state.bossFlashTimer = (state.bossFlashTimer || 0) + 1;
+                }
+            }
+            if (state.bossCooldown > 0) {
+                state.bossCooldown--;
+                if (state.bossCooldown === 0) {
+                    spawnBoss();
+                }
+            }
+            if (state.monsters.length < 3 && !state.gameOver && !state.isFraud) {
+                if (Math.random() < 0.04) spawnMonster();
+            }
+        }
+
+        // ---- 绘制 ----
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#3a4050';
+            ctx.lineWidth = 0.5;
+            for (let x=0; x<canvas.width; x+=40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+            for (let y=0; y<canvas.height; y+=40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+
+            for (const m of state.monsters) {
+                ctx.shadowColor = '#00000066'; ctx.shadowBlur = 10;
+                ctx.beginPath(); ctx.arc(m.x, m.y, m.radius, 0, Math.PI*2);
+                ctx.fillStyle = m.color; ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = '#2a2a2a'; ctx.lineWidth=2; ctx.stroke();
+                ctx.fillStyle = '#1a1a2a';
+                ctx.beginPath(); ctx.arc(m.x-5, m.y-3, 4, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(m.x+5, m.y-3, 4, 0, Math.PI*2); ctx.fill();
+                const hpPct = m.hp/m.maxHp;
+                ctx.fillStyle = '#2a1a1a';
+                ctx.fillRect(m.x-20, m.y-m.radius-10, 40, 5);
+                ctx.fillStyle = hpPct>0.5 ? '#4a8a3a' : '#b04a3a';
+                ctx.fillRect(m.x-20, m.y-m.radius-10, 40*hpPct, 5);
+                ctx.fillStyle = '#c0b8a0'; ctx.font='9px sans-serif'; ctx.textAlign='center';
+                ctx.fillText(m.name, m.x, m.y-m.radius-14);
+            }
+
+            if (state.boss) {
+                const b = state.boss;
+                let fillColor = b.color;
+                let strokeColor = '#6a4a1a';
+                if (state.bossRage) {
+                    const flash = Math.floor(state.bossFlashTimer / 10) % 2 === 0;
+                    if (flash) {
+                        fillColor = '#cc3344';
+                        strokeColor = '#ff0000';
+                    }
+                }
+                ctx.shadowColor = '#ff883366';
+                ctx.shadowBlur = state.bossRage ? 50 : 30;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.radius, 0, Math.PI*2);
+                ctx.fillStyle = fillColor;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = state.bossRage ? 6 : 4;
+                ctx.stroke();
+                ctx.fillStyle = '#f5d742'; ctx.font='26px sans-serif'; ctx.textAlign='center';
+                ctx.fillText('👑', b.x, b.y-b.radius-6);
+                ctx.fillStyle = '#4a1a1a';
+                ctx.beginPath(); ctx.arc(b.x-10, b.y-4, 6, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(b.x+10, b.y-4, 6, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#ff6644';
+                ctx.beginPath(); ctx.arc(b.x-10, b.y-4, 3, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(b.x+10, b.y-4, 3, 0, Math.PI*2); ctx.fill();
+                const hpPct = b.hp/b.maxHp;
+                ctx.fillStyle = '#2a1a1a';
+                ctx.fillRect(b.x-40, b.y-b.radius-18, 80, 8);
+                ctx.fillStyle = hpPct>0.5 ? '#d4a050' : '#cc3344';
+                ctx.fillRect(b.x-40, b.y-b.radius-18, 80*hpPct, 8);
+                ctx.fillStyle = '#f5d742'; ctx.font='12px sans-serif';
+                ctx.fillText('👑 骷髅王', b.x, b.y-b.radius-24);
+                if (state.bossRage) {
+                    ctx.fillStyle = '#ff3344';
+                    ctx.font='bold 14px sans-serif';
+                    ctx.fillText('🔥 愤怒！', b.x, b.y+b.radius+22);
+                }
+            }
+
+            ctx.shadowBlur = 0;
+            ctx.beginPath(); ctx.arc(state.player.x, state.player.y, state.player.radius, 0, Math.PI*2);
+            ctx.fillStyle = '#6a9a6a'; ctx.fill();
+            ctx.strokeStyle = '#3a5a3a'; ctx.lineWidth=3; ctx.stroke();
+            ctx.fillStyle = '#e8e8e8';
+            ctx.beginPath(); ctx.arc(state.player.x-5, state.player.y-4, 5, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(state.player.x+5, state.player.y-4, 5, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#1a2a3a';
+            ctx.beginPath(); ctx.arc(state.player.x-4, state.player.y-3, 2.5, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(state.player.x+6, state.player.y-3, 2.5, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#8fdf7a'; ctx.font='11px sans-serif'; ctx.textAlign='center';
+            ctx.fillText('⚔️ 勇者', state.player.x, state.player.y-state.player.radius-8);
+
+            for (const e of state.effects) {
+                const progress = 1 - e.timer / e.maxTimer;
+                const alpha = 1 - progress;
+                const size = 20 + progress * 40;
+                if (e.type === 'hit' || e.type === 'boss_hit') {
+                    ctx.strokeStyle = `rgba(255,200,80,${alpha})`;
+                    ctx.lineWidth = 4;
+                    ctx.beginPath(); ctx.arc(e.x, e.y, size*0.6, 0, Math.PI*2); ctx.stroke();
+                } else if (e.type === 'kill' || e.type === 'boss_kill') {
+                    ctx.fillStyle = `rgba(255,215,0,${alpha})`;
+                    ctx.font = `${20+progress*30}px sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText('💥', e.x, e.y);
+                } else if (e.type === 'boss_spawn') {
+                    ctx.fillStyle = `rgba(255,100,50,${alpha})`;
+                    ctx.font = `${30+progress*40}px sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText('👑', e.x, e.y);
+                } else if (e.type === 'upgrade') {
+                    ctx.fillStyle = `rgba(100,255,150,${alpha})`;
+                    ctx.font = `${24+progress*30}px sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText('⬆️', e.x, e.y);
+                } else if (e.type === 'player_hit') {
+                    ctx.strokeStyle = `rgba(255,60,60,${alpha})`;
+                    ctx.lineWidth = 5;
+                    ctx.beginPath(); ctx.arc(e.x, e.y, size*0.3, 0, Math.PI*2); ctx.stroke();
+                }
+                e.timer--;
+            }
+            state.effects = state.effects.filter(e => e.timer > 0);
+
+            for (const ft of state.floatingTexts) {
+                const alpha = Math.min(1, ft.life / 20);
+                ctx.fillStyle = ft.color;
+                ctx.globalAlpha = alpha;
+                ctx.font = 'bold 18px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(ft.text, ft.x, ft.y - (40 - ft.life) * 0.6);
+                ft.life--;
+            }
+            state.floatingTexts = state.floatingTexts.filter(ft => ft.life > 0);
+            ctx.globalAlpha = 1;
+        }
+
+        // ---- 游戏循环 ----
+        function gameLoop() {
+            if (state.loopRunning) return;
+            state.loopRunning = true;
+            
+            function loop() {
+                if (!state.gameOver && !state.isFraud) {
+                    if (state.dir.x !== 0 || state.dir.y !== 0) {
+                        movePlayer(state.dir.x, state.dir.y);
+                    }
+                    if (state.attackCooldown > 0) state.attackCooldown--;
+                    updateMonsters();
+                    if (state.monsters.length < 2 && !state.boss && !state.gameOver) {
+                        if (Math.random() < 0.03) spawnMonster();
+                    }
+                    updateUI();
+                }
+                draw();
+                requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        // ---- 反诈浮层 ----
+        function showFraudOverlay() {
+            if (state.isFraud) return;
+            state.isFraud = true;
+            fraudOverlay.classList.add('show');
+            let sec = 12;
+            fraudTimer.textContent = sec;
+            const timer = setInterval(() => {
+                sec--;
+                fraudTimer.textContent = sec;
+                if (sec <= 0) {
+                    clearInterval(timer);
+                    fraudTimer.textContent = '😂';
+                    const credit = fraudOverlay.querySelector('.credit');
+                    credit.innerHTML = '🎉 点击关闭并跳转至 zkwei123.github.io';
+                    fraudOverlay.style.cursor = 'pointer';
+                    fraudOverlay.onclick = function() {
+                        window.location.href = 'https://zkwei123.github.io';
+                    };
+                }
+            }, 1000);
+        }
+
+        // ---- 事件 ----
+        btnStart.addEventListener('click', function startGame() {
+            startArea.classList.add('hidden');
+            gamePlayArea.classList.add('active');
+            resetGame();
+            gameLoop();
+        });
+        
+        adBanner.addEventListener('click', ()=> {
+            if (!startArea.classList.contains('hidden')) {
+                btnStart.click();
+            }
+        });
+
+        attackBtn.addEventListener('click', playerAttack);
+        upgradeAtkBtn.addEventListener('click', upgradeAtk);
+        upgradeDefBtn.addEventListener('click', upgradeDef);
+
+        reviveBtn.addEventListener('click', ()=> {
+            if (!state.gameOver || state.isFraud) return;
+            resetGame();
+            attackBtn.disabled = false;
+            upgradeAtkBtn.disabled = false;
+            upgradeDefBtn.disabled = false;
+            resurrectBar.classList.remove('show');
+            log('✨ 骷髅复活！ 继续战斗！', 'good');
+        });
+        okBtn.addEventListener('click', ()=> {
+            if (!state.gameOver || state.isFraud) return;
+            showFraudOverlay();
+        });
+
+        const keys = {};
+        document.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+            keys[key] = true;
+            let dx=0, dy=0;
+            if (keys['w'] || keys['arrowup']) dy=-1;
+            if (keys['s'] || keys['arrowdown']) dy=1;
+            if (keys['a'] || keys['arrowleft']) dx=-1;
+            if (keys['d'] || keys['arrowright']) dx=1;
+            state.dir.x = dx; state.dir.y = dy;
+            if (key === 'c') { e.preventDefault(); playerAttack(); }
+            if (['arrowup','arrowdown','arrowleft','arrowright',' '].includes(e.key)) e.preventDefault();
+        });
+        document.addEventListener('keyup', (e) => {
+            const key = e.key.toLowerCase();
+            keys[key] = false;
+            let dx=0, dy=0;
+            if (keys['w'] || keys['arrowup']) dy=-1;
+            if (keys['s'] || keys['arrowdown']) dy=1;
+            if (keys['a'] || keys['arrowleft']) dx=-1;
+            if (keys['d'] || keys['arrowright']) dx=1;
+            state.dir.x = dx; state.dir.y = dy;
+        });
+
+        document.querySelectorAll('.joystick-btn').forEach(btn => {
+            const dir = btn.dataset.dir;
+            const start = (e) => {
+                e.preventDefault();
+                if (dir === 'center') { playerAttack(); return; }
+                let dx=0, dy=0;
+                if (dir === 'up') dy=-1;
+                if (dir === 'down') dy=1;
+                if (dir === 'left') dx=-1;
+                if (dir === 'right') dx=1;
+                state.dir.x = dx; state.dir.y = dy;
+            };
+            const end = (e) => {
+                e.preventDefault();
+                if (dir === 'center') return;
+                let any=false;
+                document.querySelectorAll('.joystick-btn').forEach(b => {
+                    if (b !== btn && b.dataset.dir !== 'center' && b.classList.contains('active')) any=true;
+                });
+                if (!any) { state.dir.x = 0; state.dir.y = 0; }
+            };
+            btn.addEventListener('touchstart', start, {passive:false});
+            btn.addEventListener('touchend', end, {passive:false});
+            btn.addEventListener('mousedown', (e) => { e.preventDefault(); if (dir!=='center') btn.classList.add('active'); start(e); });
+            btn.addEventListener('mouseup', (e) => { e.preventDefault(); btn.classList.remove('active'); end(e); });
+            btn.addEventListener('mouseleave', ()=> { if (dir!=='center') btn.classList.remove('active'); });
+        });
+
+        window.addEventListener('blur', ()=> { state.dir.x=0; state.dir.y=0; });
+
+        updateUI();
+        log('(c)made by zkwei123版权所有，Apache-2.0', 'good');
+    })();
+</script>
+</body>
+</html>
